@@ -1,0 +1,13 @@
+{
+  "name": "autodon_electron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "electron": "^5.0.0"
+  }
+}

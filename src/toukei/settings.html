@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>統計の設定</title>
+    <!--Import Google Icon Font　これ httpsにすると動く-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+</head>
+
+<body>
+    <div style="padding: 20px 60px;">
+        <div class="col s12 m6">
+            <div class="card deep-orange accent-1">
+                <div class="card-content white-text">
+                    <span class="card-title">設定画面</span>
+
+                    <!-- 自動投稿 -->
+                    <div class="row;width:auto">
+                        <div class="col s12 m5">
+                            <div class="card-panel orange">
+                                <span class="white-text">
+                                    <!-- チェックボックス -->
+                                    <div class="switch">
+                                        <label class="white-text">
+                                            10秒の統計が取れたら自動投稿する。
+                                            <input type="checkbox" id="second_switch"
+                                                onclick="modeSave('second_switch')">
+                                            <span class="lever"></span>
+                                        </label>
+                                    </div>
+                                    <div class="switch">
+                                        <label class="white-text">
+                                            1分の統計が取れたら自動投稿する。
+                                            <input type="checkbox" id="minute_switch"
+                                                onclick="modeSave('minute_switch')">
+                                            <span class="lever"></span>
+                                        </label>
+                                    </div>
+                                    <div class="switch">
+                                        <label class="white-text">
+                                            1時間の統計が取れたら自動投稿する。
+                                            <input type="checkbox" id="hour_switch" onclick="modeSave('hour_switch')">
+                                            <span class="lever"></span>
+                                        </label>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-action">
+                    <a class="waves-effect waves-light btn orange darken-4" id="start_button"
+                        onclick="window_close()"><i class="material-icons left">arrow_back</i>戻る</a></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //読み込み
+        var mode = document.getElementById('second_switch').checked = toBoolean(localStorage.getItem('second_switch'));
+        var mode = document.getElementById('minute_switch').checked = toBoolean(localStorage.getItem('minute_switch'));
+        var mode = document.getElementById('hour_switch').checked = toBoolean(localStorage.getItem('hour_switch'));
+        //文字列Boolean→Boolean
+        function toBoolean(text) {
+            var mode = false;
+            if (text.match('true')) {
+                mode = true;
+            }
+            return mode;
+        }
+    </script>
+
+</body>
+
+<script>
+    const remote = require('electron').remote;
+
+    //戻る
+    function window_close() {
+        var window = remote.BrowserWindow.getFocusedWindow();
+        window.close();
+    }
+
+    //保存
+    function modeSave(name) {
+        var mode = document.getElementById(name).checked;
+        localStorage.setItem(name, mode);
+    }
+</script>
+
+</html>
