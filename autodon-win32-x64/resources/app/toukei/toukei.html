@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>統計</title>
+    <!--Import Google Icon Font　これ httpsにすると動く-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+</head>
+
+<body>
+    <div style="padding: 20px 60px;">
+        <div class="col s12 m6">
+            <div class="card deep-orange accent-1">
+                <div class="card-content white-text">
+                    <span class="card-title">統計</span>
+                    間隔ごとに統計が取れます。
+                    <p id="info"></p>
+                    <p id="fed_info"></p>
+                </div>
+                <div class="card-action">
+                    <a class="waves-effect waves-light btn orange darken-4" id="start_button" onclick="start()"><i
+                            class="material-icons left">exposure_plus_1</i>計測開始</a></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div style="padding: 20px 60px;">
+        <table style="table-layout: fixed;">
+            <tr>
+                <td>
+                    <div class="col s12 m6">
+                        <div class="card  deep-orange accent-1">
+                            <div class="card-content white-text">
+                                <span class="card-title">10秒の統計</span>
+                                <p id="second_toots"></p>
+                                <p id="second_accounts"></p>
+                                <p id="fed_second_toots"></p>
+                                <p id="fed_second_accounts"></p>
+                                <p id="second_times"></p>
+                            </div>
+                            <div class="card-action">
+                                <a class="waves-effect waves-light btn orange darken-4" onclick="" id="second_post"><i
+                                        class="material-icons left">send</i>投稿する</a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col s12 m6">
+                        <div class="card  deep-orange accent-1">
+                            <div class="card-content white-text">
+                                <span class="card-title">1分の統計</span>
+                                <p id="minute_toots"></p>
+                                <p id="minute_accounts"></p>
+                                <p id="fed_minute_toots"></p>
+                                <p id="fed_minute_accounts"></p>
+                                <p id="minute_times"></p>
+                            </div>
+                            <div class="card-action">
+                                <a class="waves-effect waves-light btn orange darken-4" onclick="" id="minute_post"><i
+                                        class="material-icons left">send</i>投稿する</a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col s12 m6">
+                        <div class="card  deep-orange accent-1">
+                            <div class="card-content white-text">
+                                <span class="card-title">1時間の統計</span>
+                                <p id="hour_toots"></p>
+                                <p id="hour_accounts"></p>
+                                <p id="fed_hour_toots"></p>
+                                <p id="fed_hour_accounts"></p>
+                                <p id="hour_times"></p>
+                            </div>
+                            <div class="card-action">
+                                <a class="waves-effect waves-light btn orange darken-4" onclick="" id="hour_post"><i
+                                        class="material-icons left">send</i>投稿する</a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+
+<script>
+
+    var instance = localStorage.getItem('instance');
+    var token = localStorage.getItem('token');
+    var websocket_url = "wss://" + instance + "/api/v1/streaming/?stream=public:local&access_token=" + token;
+    var fed_websocket_url = "wss://" + instance + "/api/v1/streaming/?stream=public&access_token=" + token;
+    //カウントよう配列
+    var second_toots_list = [];
+    var second_accounts_list = [];
+    var minute_toots_list = [];
+    var minute_accounts_list = [];
+    var hour_toots_list = [];
+    var hour_accounts_list = [];
+    //連合
+    var fed_second_toots_list = [];
+    var fed_second_accounts_list = [];
+    var fed_minute_toots_list = [];
+    var fed_minute_accounts_list = [];
+    var fed_hour_toots_list = [];
+    var fed_hour_accounts_list = [];
+
+    //WebSocket接続
+    function start() {
+
+        secondCount();
+        minuteCount();
+        hourCount();
+
+        // WebSocket 接続を作成する
+        const socket = new WebSocket(websocket_url);
+        // 接続を開く
+        socket.addEventListener('open', function (event) {
+            document.getElementById('info').innerHTML = 'ローカルTLに接続しました';
+        });
+
+        // メッセージを待ち受ける
+        socket.addEventListener('message', function (event) {
+            const data = event.data;
+            //JSONパース
+            obj = JSON.parse(data);
+            //必要な部分(一回文字列にしてる)
+            const content = obj.payload;
+            content_json = JSON.parse(content);
+            //本文
+            const text = content_json.content;
+            const userId = content_json.account.id;
+            //トゥート数
+            second_toots_list.push(text);
+            minute_toots_list.push(text);
+            hour_toots_list.push(text);
+            //ユーザーはかぶらないよう
+            if (second_accounts_list.indexOf(userId) == -1) {
+                second_accounts_list.push(userId);
+            }
+            if (minute_accounts_list.indexOf(userId) == -1) {
+                minute_accounts_list.push(userId);
+            }
+            if (hour_accounts_list.indexOf(userId) == -1) {
+                hour_accounts_list.push(userId);
+            }
+        });
+
+
+        // WebSocket 接続を作成する
+        const fed_socket = new WebSocket(fed_websocket_url);
+        // 接続を開く
+        fed_socket.addEventListener('open', function (event) {
+            document.getElementById('fed_info').innerHTML = '連合TLに接続しました';
+        });
+
+        // メッセージを待ち受ける
+        fed_socket.addEventListener('message', function (event) {
+            const data = event.data;
+            //JSONパース
+            obj = JSON.parse(data);
+            //必要な部分(一回文字列にしてる)
+            const content = obj.payload;
+            content_json = JSON.parse(content);
+            //本文
+            const text = content_json.content;
+            const userId = content_json.account.id;
+            //トゥート数
+            fed_second_toots_list.push(text);
+            fed_minute_toots_list.push(text);
+            fed_hour_toots_list.push(text);
+            //ユーザーはかぶらないよう
+            if (fed_second_accounts_list.indexOf(userId) == -1) {
+                fed_second_accounts_list.push(userId);
+            }
+            if (fed_minute_accounts_list.indexOf(userId) == -1) {
+                fed_minute_accounts_list.push(userId);
+            }
+            if (fed_hour_accounts_list.indexOf(userId) == -1) {
+                fed_hour_accounts_list.push(userId);
+            }
+        });
+
+        //定期実行
+        setInterval("secondCount()", 10000);
+        setInterval("minuteCount()", 60000);
+        setInterval("hourCount()", 3600000);
+    }
+
+    //POST
+    function status_post(text) {
+        var xmlHttpRequest = new XMLHttpRequest();
+        xmlHttpRequest.addEventListener("load", function (event) {
+            // xmlHttpRequest.responseにレスポンスが入っています
+        }, false);
+        //公開範囲
+        var visibility = localStorage.getItem('visibility');
+        if (visibility == null) {
+            visibility = "direct";
+        }
+        xmlHttpRequest.responseType = "json";
+        xmlHttpRequest.open("POST", "https://" + localStorage.getItem('instance') + "/api/v1/statuses?access_token=" + localStorage.getItem('token'));
+        xmlHttpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        xmlHttpRequest.send("status=" + encodeURIComponent(text) + "&visibility=" + visibility);
+    }
+
+    //秒
+    function secondCount() {
+        document.getElementById('second_toots').innerText = '総ローカルトゥート数 : ' + String(second_toots_list.length);
+        document.getElementById('second_accounts').innerText = '総ローカルユーザー数 : ' + String(second_accounts_list.length);
+        document.getElementById('fed_second_toots').innerText = '総連合トゥート数 : ' + String(fed_second_toots_list.length);
+        document.getElementById('fed_second_accounts').innerText = '総連合ユーザー数 : ' + String(fed_second_accounts_list.length);
+        second_toots_list = [];
+        second_accounts_list = [];
+        fed_second_toots_list = [];
+        fed_second_accounts_list = [];
+        //時間
+        var date = new Date();
+        var time = date.getHours() + "時" + date.getMinutes() + "分" + date.getSeconds() + "秒";
+        document.getElementById('second_times').innerText = time;
+        //POST
+        document.getElementById('second_post').onclick = function () {
+            status_post(document.getElementById('second_toots').innerText + "\n" + document.getElementById('second_accounts').innerText + "\n" + document.getElementById('second_times').innerText);
+        };
+        //定期投稿
+        if (getTimePost('second_switch')) {
+            status_post(document.getElementById('second_toots').innerText + "\n" + document.getElementById('second_accounts').innerText + "\n" + document.getElementById('second_times').innerText);
+        }
+    }
+    //分
+    function minuteCount() {
+        document.getElementById('minute_toots').innerText = '総ローカルトゥート数 : ' + String(minute_toots_list.length);
+        document.getElementById('minute_accounts').innerText = '総ローカルユーザー数 : ' + String(minute_accounts_list.length);
+        document.getElementById('fed_minute_toots').innerText = '総連合トゥート数 : ' + String(fed_minute_toots_list.length);
+        document.getElementById('fed_minute_accounts').innerText = '総連合ユーザー数 : ' + String(fed_minute_accounts_list.length);
+        minute_toots_list = [];
+        minute_accounts_list = [];
+        fed_minute_toots_list = [];
+        fed_minute_accounts_list = [];
+        //時間
+        var date = new Date();
+        var time = date.getHours() + "時" + date.getMinutes() + "分" + date.getSeconds() + "秒";
+        document.getElementById('minute_times').innerText = time;
+        //POST
+        document.getElementById('minute_post').onclick = function () {
+            status_post(document.getElementById('minute_toots').innerText + "\n" + document.getElementById('minute_accounts').innerText + "\n" + document.getElementById('minute_times').innerText);
+        };
+        //定期投稿
+        if (getTimePost('minute_switch')) {
+            status_post(document.getElementById('minute_toots').innerText + "\n" + document.getElementById('minute_accounts').innerText + "\n" + document.getElementById('minute_times').innerText);
+        }
+    }
+    //時間
+    function hourCount() {
+        document.getElementById('hour_toots').innerText = '総ローカルトゥート数 : ' + String(hour_toots_list.length);
+        document.getElementById('hour_accounts').innerText = '総ローカルユーザー数 : ' + String(hour_accounts_list.length);
+        document.getElementById('fed_hour_toots').innerText = '総連合トゥート数 : ' + String(fed_hour_toots_list.length);
+        document.getElementById('fed_hour_accounts').innerText = '総連合ユーザー数 : ' + String(fed_hour_accounts_list.length);
+        hour_toots_list = [];
+        hour_accounts_list = [];
+        fed_hour_toots_list = [];
+        fed_hour_accounts_list = [];
+        //時間
+        var date = new Date();
+        var time = date.getHours() + "時" + date.getMinutes() + "分" + date.getSeconds() + "秒";
+        document.getElementById('hour_times').innerText = time;
+        //POST
+        document.getElementById('hour_post').onclick = function () {
+            status_post(document.getElementById('hour_toots').innerText + "\n" + document.getElementById('hour_accounts').innerText + "\n" + document.getElementById('hour_times').innerText);
+        };
+        //定期投稿
+        if (getTimePost('hour_switch')) {
+            status_post(document.getElementById('hour_toots').innerText + "\n" + document.getElementById('hour_accounts').innerText + "\n" + document.getElementById('hour_times').innerText);
+        }
+    }
+
+    //定期投稿するか取得
+    function getTimePost(text) {
+        var mode = false;
+        if (toBoolean(localStorage.getItem(text))) {
+            mode = true;
+        }
+        return mode;
+    }
+
+    //文字列Boolean→Boolean
+    function toBoolean(text) {
+        var mode = false;
+        if (text.match('true')) {
+            mode = true;
+        }
+        return mode;
+    }
+
+</script>
+
+
+</html>

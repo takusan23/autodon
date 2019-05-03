@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>システム情報</title>
+    <!--Import Google Icon Font　これ httpsにすると動く-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+</head>
+
+<body>
+    <div style="padding: 20px 60px;">
+        <div class="col s12 m6">
+            <div class="card  grey darken-2">
+                <div class="card-content white-text">
+                    <span class="card-title">システム情報</span>
+                    <p id="device"></p>
+                    CPU使用率とかを見れるよ
+                    <p id="info"></p>
+                </div>
+                <div class="card-action">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="padding: 20px 60px;">
+        <table style="table-layout: fixed;">
+            <tr>
+                <td>
+                    <div class="col s12 m6">
+                        <div class="card  blue-grey">
+                            <div class="card-content white-text">
+                                <span class="card-title">デバイス詳細</span>
+                                <p id="hostname"></p>
+                                <p id="os"></p>
+                                <p id="device_cpu"></p>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col s12 m6">
+                        <div class="card  blue-grey">
+                            <div class="card-content white-text">
+                                <span class="card-title">CPU使用率</span>
+                                <p id="cpu"></p>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="col s12 m6">
+                        <div class="card  blue-grey">
+                            <div class="card-content white-text">
+                                <span class="card-title">メモリ容量</span>
+                                <p id="ram"></p>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        const os = require('os');
+        document.getElementById('hostname').innerText = os.hostname();
+        document.getElementById('os').innerText = os.type();
+        var cpu_array = os.cpus();
+        document.getElementById('device_cpu').innerText = cpu_array[0].model;
+        document.getElementById('cpu').innerText = process.getCPUUsage().percentCPUUsage;
+        document.getElementById('ram').innerText = process.getSystemMemoryInfo().total;
+    </script>
+
+</body>
+
+<script>
+
+    //読み込み終わったら呼ばれる
+    window.onload = function () {
+        timeRun();
+        if (toBoolean(localStorage.getItem('system_reply'))) {
+            mastodonLink();
+        }
+    }
+
+    //CPU使用率
+    function getCPUUsage() {
+        document.getElementById('cpu').innerText = '使用率 : ' + process.getCPUUsage().percentCPUUsage;
+    }
+
+    //搭載RAM
+    function getTotalRam() {
+        document.getElementById('ram').innerText = process.getSystemMemoryInfo().total;
+    }
+
+    //定期的に呼ぶ
+    function timeRun() {
+        setInterval("getCPUUsage()", 1000);
+    }
+
+    //MastodonのLTLから質問されたら返信する
+    function mastodonLink() {
+        var instance = localStorage.getItem('instance');
+        var token = localStorage.getItem('token');
+        var websocket_url = "wss://" + instance + "/api/v1/streaming/?stream=public:local&access_token=" + token;
+        // WebSocket 接続を作成する
+        const socket = new WebSocket(websocket_url);
+        // 接続を開く
+        socket.addEventListener('open', function (event) {
+            document.getElementById('info').innerHTML = 'ローカルTLに接続しました';
+        });
+
+        // メッセージを待ち受ける
+        socket.addEventListener('message', function (event) {
+            const data = event.data;
+            //JSONパース
+            obj = JSON.parse(data);
+            //必要な部分(一回文字列にしてる)
+            const content = obj.payload;
+            content_json = JSON.parse(content);
+            //本文
+            const text = content_json.content;
+            const toot_id = content_json.id;
+            const account_id = content_json.account.id;
+            console.log(toot_id)
+            //返信する
+            if (account_id == 20498) {
+                //CPU使用率か搭載メモリいくつ？で
+                if (text.match('CPU使用率')) {
+                    var cpu = process.getCPUUsage().percentCPUUsage;
+                    statusPost('使用率は ' + cpu + ' だよ！', toot_id);
+                }
+                if (text.match('搭載メモリ')) {
+                    var ram = process.getSystemMemoryInfo().total;
+                    statusPost('搭載メモリは ' + ram + ' だよ！', toot_id);
+                }
+                if (text.match('てすと')) {
+                    var cpu_array = os.cpus();
+                    statusPost('搭載CPUは ' + cpu_array[0].model + ' だよ！', toot_id);
+                }
+            }
+        });
+    }
+
+    //POST
+    function statusPost(text, id) {
+        var xmlHttpRequest = new XMLHttpRequest();
+        xmlHttpRequest.addEventListener("load", function (event) {
+            // xmlHttpRequest.responseにレスポンスが入っています
+        }, false);
+        //公開範囲
+        var visibility = localStorage.getItem('visibility');
+        if (visibility == null) {
+            visibility = "direct";
+        }
+        xmlHttpRequest.responseType = "json";
+        xmlHttpRequest.open("POST", "https://" + localStorage.getItem('instance') + "/api/v1/statuses?access_token=" + localStorage.getItem('token'));
+        xmlHttpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        xmlHttpRequest.send("status=" + encodeURIComponent(text) + "&visibility=direct");
+    }
+
+    //文字列Boolean→Boolean
+    function toBoolean(text) {
+        var mode = false;
+        if (text.match('true')) {
+            mode = true;
+        }
+        return mode;
+    }
+
+</script>
+
+</html>
