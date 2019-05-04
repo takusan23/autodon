@@ -1,13 +1,21 @@
 {
   "name": "autodon_electron",
   "version": "1.0.0",
-  "description": "",
+  "description": "Mastodon Bot etc",
   "main": "main.js",
+  "author": "takusan_23",
   "scripts": {
     "start": "electron ."
   },
   "license": "Apache 2.0",
   "devDependencies": {
-    "electron": "^5.0.0"
+    "electron": "^5.0.0",
+    "electron-installer-windows": "^1.1.1",
+    "electron-packager": "^13.1.1",
+    "electron-winstaller": "^3.0.4"
+  },
+  "dependencies": {
+    "electron-windows-installer": "^1.7.8",
+    "gulp": "^4.0.1"
   }
 }

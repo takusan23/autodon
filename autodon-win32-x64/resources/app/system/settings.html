@@ -19,7 +19,6 @@
                 <div class="card-content white-text">
                     <span class="card-title">設定画面</span>
 
-                    <!-- 自動投稿 -->
                     <div class="row;width:auto">
                         <div class="col s12 m5">
                             <div class="card-panel blue-grey darken-4">
@@ -32,6 +31,22 @@
                                             <span class="lever"></span>
                                         </label>
                                     </div>
+                                    <div class="switch">
+                                        <label class="white-text">
+                                            Terminal操作ができるようにする
+                                            <input type="checkbox" id="system_shell" onclick="modeSave('system_shell')">
+                                            <span class="lever"></span>
+                                        </label>
+                                    </div>
+                                    <!-- 公開範囲 -->
+                                    <br>
+                                    <div class="row">
+                                        公開範囲[direct, private, unlisted public]のどれか
+                                        <div class="input-field col s12">
+                                            <input placeholder="direct" value="direct" id="visibility" type="text"
+                                                class="validate">
+                                            <label for="text"></label>
+                                        </div>
                                 </span>
                             </div>
                         </div>
@@ -39,8 +54,8 @@
 
                 </div>
                 <div class="card-action">
-                    <a class="waves-effect waves-light btn grey" id="start_button"
-                        onclick="window_close()"><i class="material-icons left">arrow_back</i>戻る</a></div>
+                    <a class="waves-effect waves-light btn grey" id="start_button" onclick="window_close()"><i
+                            class="material-icons left">arrow_back</i>戻る</a></div>
             </div>
         </div>
     </div>
@@ -48,6 +63,8 @@
     <script>
         //読み込み
         var mode = document.getElementById('system_reply').checked = toBoolean(localStorage.getItem('system_reply'));
+        var mode = document.getElementById('system_shell').checked = toBoolean(localStorage.getItem('system_shell'));
+        var mode = document.getElementById('visibility').value = localStorage.getItem('visibility');
         //文字列Boolean→Boolean
         function toBoolean(text) {
             var mode = false;
@@ -65,6 +82,7 @@
 
     //戻る
     function window_close() {
+        valueSave('visibility');
         var window = remote.BrowserWindow.getFocusedWindow();
         window.close();
     }
@@ -72,6 +90,10 @@
     //保存
     function modeSave(name) {
         var mode = document.getElementById(name).checked;
+        localStorage.setItem(name, mode);
+    }
+    function valueSave(name) {
+        var mode = document.getElementById(name).value;
         localStorage.setItem(name, mode);
     }
 </script>

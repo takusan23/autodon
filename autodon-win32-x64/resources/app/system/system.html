@@ -74,6 +74,13 @@
         document.getElementById('device_cpu').innerText = cpu_array[0].model;
         document.getElementById('cpu').innerText = process.getCPUUsage().percentCPUUsage;
         document.getElementById('ram').innerText = process.getSystemMemoryInfo().total;
+
+        // const exec = require('child_process').exec;
+        // exec('ls -la /home/pi/file', (err, stdout, stderr) => {
+        //     if (err) { alert(err); }
+        //     alert(stdout);
+        // });
+
     </script>
 
 </body>
@@ -105,6 +112,7 @@
 
     //MastodonのLTLから質問されたら返信する
     function mastodonLink() {
+        //alert(localStorage.getItem(('id')))
         var instance = localStorage.getItem('instance');
         var token = localStorage.getItem('token');
         var websocket_url = "wss://" + instance + "/api/v1/streaming/?stream=public:local&access_token=" + token;
@@ -127,9 +135,9 @@
             const text = content_json.content;
             const toot_id = content_json.id;
             const account_id = content_json.account.id;
-            console.log(toot_id)
+            //console.log(toot_id)
             //返信する
-            if (account_id == 20498) {
+            if (account_id == Number(localStorage.getItem('id'))) {
                 //CPU使用率か搭載メモリいくつ？で
                 if (text.match('CPU使用率')) {
                     var cpu = process.getCPUUsage().percentCPUUsage;
@@ -139,9 +147,25 @@
                     var ram = process.getSystemMemoryInfo().total;
                     statusPost('搭載メモリは ' + ram + ' だよ！', toot_id);
                 }
-                if (text.match('てすと')) {
+                if (text.match('搭載CPU')) {
                     var cpu_array = os.cpus();
                     statusPost('搭載CPUは ' + cpu_array[0].model + ' だよ！', toot_id);
+                }
+                //ターミナル操作？
+                if (toBoolean(localStorage.getItem('system_shell')) && text.match('ターミナル')) {
+                    //HTMLタグ削除
+                    var html = text.replace(/<("[^"]*"|'[^']*'|[^'">])*>/g, '');
+                    //ターミナル操作の文字を消す
+                    var command = html.replace('ターミナル', '');
+                    //ターミナル操作
+                    const exec = require('child_process').exec;
+                    exec(command, (err, stdout, stderr) => {
+                        if (err) {
+                            statusPost(err, toot_id);
+                        } else {
+                            statusPost(stdout, toot_id);
+                        }
+                    });
                 }
             }
         });
@@ -161,8 +185,9 @@
         xmlHttpRequest.responseType = "json";
         xmlHttpRequest.open("POST", "https://" + localStorage.getItem('instance') + "/api/v1/statuses?access_token=" + localStorage.getItem('token'));
         xmlHttpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        xmlHttpRequest.send("status=" + encodeURIComponent(text) + "&visibility=direct");
+        xmlHttpRequest.send("status=" + encodeURIComponent(text) + "&visibility=direct" + "&in_reply_to_id=" + id);
     }
+
 
     //文字列Boolean→Boolean
     function toBoolean(text) {
@@ -171,6 +196,20 @@
             mode = true;
         }
         return mode;
+    }
+
+    //ターミナル操作
+    function useTerminal(command) {
+        var text = "";
+        const exec = require('child_process').exec;
+        exec(command, (err, stdout, stderr) => {
+            if (err) {
+                text = err;
+            } else {
+                text = stdout;
+            }
+        });
+        return text;
     }
 
 </script>

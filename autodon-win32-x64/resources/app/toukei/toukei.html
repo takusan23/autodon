@@ -294,8 +294,12 @@
     //文字列Boolean→Boolean
     function toBoolean(text) {
         var mode = false;
-        if (text.match('true')) {
-            mode = true;
+        if (text != null) {
+            if (text.match('true')) {
+                mode = true;
+            }
+        } else {
+            mode = false;
         }
         return mode;
     }

@@ -22,6 +22,8 @@
                     ようこそー
                 </div>
                 <div class="card-action">
+                    <a class="waves-effect waves-light btn" onclick="showAccountWindow()"><i
+                            class="material-icons left">settings</i>アカウント設定</a>
                 </div>
             </div>
         </div>
@@ -52,7 +54,7 @@
                                 タイムラインから言葉を探して投稿するなど。
                             </div>
                             <div class="card-action">
-                                <a class="waves-effect waves-light btn"><i
+                                <a class="waves-effect waves-light btn" onclick="showAutoWindow()"><i
                                         class="material-icons left">developer_board</i>自動化画面へ</a>
                             </div>
                         </div>
@@ -93,6 +95,9 @@
     var tokeiSettingWindow;
     var systemWindow;
     var systemWindowSetting;
+    var accountWindow;
+    var autoWindowSetting;
+    var autoWindow;
 
     //統計画面表示
     function showTokeiWindow() {
@@ -130,6 +135,24 @@
         tokeiWindow.on('closed', () => {
             tokeiWindow = null;
         });
+    }
+
+    //アカウント設定
+    function showAccountWindow() {
+        //新しいウィンドウ
+        accountWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            webPreferences: {
+                nodeIntegration: true
+            },
+        })
+        accountWindow.setMenu(null)
+        accountWindow.loadURL('file://' + __dirname + '/account/account.html')
+        //ウィンドウを閉じるイベント処理
+        accountWindow.on('closed', () => {
+            accountWindow = null;
+        })
     }
 
     //システム情報
@@ -171,6 +194,44 @@
         });
     }
 
+    //自動化画面
+    function showAutoWindow() {
+        //自動化画面
+        var auto_menu = [{
+            label: '設定',
+            click: function () {
+                tokeiSettingWindow = new BrowserWindow({
+                    width: 800,
+                    height: 600,
+                    webPreferences: {
+                        nodeIntegration: true
+                    }
+                });
+                tokeiSettingWindow.setMenu(null);
+                tokeiSettingWindow.loadURL('file://' + __dirname + '/bot/settings.html');
+                //ウィンドウを閉じるイベント処理
+                tokeiSettingWindow.on('closed', () => {
+                    tokeiSettingWindow = null;
+                });
+            }
+        }];
+        const menu = Menu.buildFromTemplate(auto_menu);
+        //自動化画面
+        autoWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            webPreferences: {
+                nodeIntegration: true
+            }
+        });
+        autoWindow.setMenu(menu);
+        //autoWindow.webContents.openDevTools()
+        autoWindow.loadURL('file://' + __dirname + '/bot/bot.html');
+        //ウィンドウを閉じるイベント処理
+        autoWindow.on('closed', () => {
+            autoWindow = null;
+        });
+    }
 
 </script>
 
