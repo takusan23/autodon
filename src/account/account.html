@@ -50,8 +50,21 @@
         var token = document.getElementById('token').value;
         localStorage.setItem('instance', instance);
         localStorage.setItem('token', token);
+        getUserID();
         var window = remote.BrowserWindow.getFocusedWindow();
         window.close();
+    }
+
+    //自分のIDを保存する？
+    function getUserID() {
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", "https://" + localStorage.getItem('instance') + "/api/v1/accounts/verify_credentials?access_token=" + localStorage.getItem('token'));
+        oReq.send();
+        oReq.addEventListener("load", function () {
+            object = JSON.parse(this.responseText);
+            var id = object.id;
+            localStorage.setItem('id', id);
+        });
     }
 
 </script>
