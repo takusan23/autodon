@@ -130,6 +130,7 @@
             }
         });
         tokeiWindow.setMenu(menu);
+        //tokeiWindow.webContents.openDevTools()
         tokeiWindow.loadURL('file://' + __dirname + '/toukei/toukei.html');
         //ウィンドウを閉じるイベント処理
         tokeiWindow.on('closed', () => {

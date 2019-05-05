@@ -169,6 +169,14 @@
                 }
             }
         });
+
+        //接続が切れたら再接続を試行する
+        socket.onclose = function (e) {
+            status_post('ストリーミングが切断されました。１分後に再接続を試みます。', '');
+            setTimeout(function () {
+                mastodonLink();
+            }, 60000);
+        };
     }
 
     //POST
