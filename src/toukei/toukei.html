@@ -112,6 +112,8 @@
     var fed_minute_accounts_list = [];
     var fed_hour_toots_list = [];
     var fed_hour_accounts_list = [];
+    //WebSokect接続中？
+    var connection = false;
 
     //WebSocket接続
     function start() {
@@ -120,79 +122,92 @@
         minuteCount();
         hourCount();
 
-        // WebSocket 接続を作成する
+
+        // ローカルWebSocket 接続を作成する
         const socket = new WebSocket(websocket_url);
-        // 接続を開く
-        socket.addEventListener('open', function (event) {
-            document.getElementById('info').innerHTML = 'ローカルTLに接続しました';
-        });
-
-        // メッセージを待ち受ける
-        socket.addEventListener('message', function (event) {
-            const data = event.data;
-            //JSONパース
-            obj = JSON.parse(data);
-            //必要な部分(一回文字列にしてる)
-            const content = obj.payload;
-            content_json = JSON.parse(content);
-            //本文
-            const text = content_json.content;
-            const userId = content_json.account.id;
-            //トゥート数
-            second_toots_list.push(text);
-            minute_toots_list.push(text);
-            hour_toots_list.push(text);
-            //ユーザーはかぶらないよう
-            if (second_accounts_list.indexOf(userId) == -1) {
-                second_accounts_list.push(userId);
-            }
-            if (minute_accounts_list.indexOf(userId) == -1) {
-                minute_accounts_list.push(userId);
-            }
-            if (hour_accounts_list.indexOf(userId) == -1) {
-                hour_accounts_list.push(userId);
-            }
-        });
-
-
-        // WebSocket 接続を作成する
+        // 連合WebSocket 接続を作成する
         const fed_socket = new WebSocket(fed_websocket_url);
-        // 接続を開く
-        fed_socket.addEventListener('open', function (event) {
-            document.getElementById('fed_info').innerHTML = '連合TLに接続しました';
-        });
 
-        // メッセージを待ち受ける
-        fed_socket.addEventListener('message', function (event) {
-            const data = event.data;
-            //JSONパース
-            obj = JSON.parse(data);
-            //必要な部分(一回文字列にしてる)
-            const content = obj.payload;
-            content_json = JSON.parse(content);
-            //本文
-            const text = content_json.content;
-            const userId = content_json.account.id;
-            //トゥート数
-            fed_second_toots_list.push(text);
-            fed_minute_toots_list.push(text);
-            fed_hour_toots_list.push(text);
-            //ユーザーはかぶらないよう
-            if (fed_second_accounts_list.indexOf(userId) == -1) {
-                fed_second_accounts_list.push(userId);
-            }
-            if (fed_minute_accounts_list.indexOf(userId) == -1) {
-                fed_minute_accounts_list.push(userId);
-            }
-            if (fed_hour_accounts_list.indexOf(userId) == -1) {
-                fed_hour_accounts_list.push(userId);
-            }
-        });
+        //接続中は切断する
+        if (connection) {
+            socket.close();
+            fed_socket.close();
+            document.getElementById('info').innerHTML = '切断しました';
+            document.getElementById('fed_info').innerHTML = '切断しました';
+        } else {
+            // 接続を開く
+            socket.addEventListener('open', function (event) {
+                document.getElementById('info').innerHTML = 'ローカルTLに接続しました';
+                connection = true;
+            });
 
-        //定期実行
-        setInterval("secondCount()", 10000);
-        setInterval("minuteCount()", 60000);
-        setInterval("hourCount()", 3600000);
+            // メッセージを待ち受ける
+            socket.addEventListener('message', function (event) {
+                const data = event.data;
+                //JSONパース
+                obj = JSON.parse(data);
+                //必要な部分(一回文字列にしてる)
+                const content = obj.payload;
+                content_json = JSON.parse(content);
+                //本文
+                const text = content_json.content;
+                const userId = content_json.account.id;
+                //トゥート数
+                second_toots_list.push(text);
+                minute_toots_list.push(text);
+                hour_toots_list.push(text);
+                //ユーザーはかぶらないよう
+                if (second_accounts_list.indexOf(userId) == -1) {
+                    second_accounts_list.push(userId);
+                }
+                if (minute_accounts_list.indexOf(userId) == -1) {
+                    minute_accounts_list.push(userId);
+                }
+                if (hour_accounts_list.indexOf(userId) == -1) {
+                    hour_accounts_list.push(userId);
+                }
+            });
+
+
+            // 接続を開く
+            fed_socket.addEventListener('open', function (event) {
+                document.getElementById('fed_info').innerHTML = '連合TLに接続しました';
+                connection = true;
+            });
+
+            // メッセージを待ち受ける
+            fed_socket.addEventListener('message', function (event) {
+                const data = event.data;
+                //JSONパース
+                obj = JSON.parse(data);
+                //必要な部分(一回文字列にしてる)
+                const content = obj.payload;
+                content_json = JSON.parse(content);
+                //本文
+                const text = content_json.content;
+                const userId = content_json.account.id;
+                //トゥート数
+                fed_second_toots_list.push(text);
+                fed_minute_toots_list.push(text);
+                fed_hour_toots_list.push(text);
+                //ユーザーはかぶらないよう
+                if (fed_second_accounts_list.indexOf(userId) == -1) {
+                    fed_second_accounts_list.push(userId);
+                }
+                if (fed_minute_accounts_list.indexOf(userId) == -1) {
+                    fed_minute_accounts_list.push(userId);
+                }
+                if (fed_hour_accounts_list.indexOf(userId) == -1) {
+                    fed_hour_accounts_list.push(userId);
+                }
+            });
+
+            //定期実行
+            setInterval("secondCount()", 10000);
+            setInterval("minuteCount()", 60000);
+            setInterval("hourCount()", 3600000);
+        }
+
     }
 
     //POST
