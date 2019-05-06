@@ -170,8 +170,9 @@
 
             //接続が切れたら再接続を試行する
             socket.onclose = function (e) {
-                status_post('ストリーミングが切断されました。１分後に再接続を試みます。');
+                //status_post('ストリーミングが切断されました。１分後に再接続を試みます。');
                 setTimeout(function () {
+                    socket.close();
                     start();
                 }, 60000);
             };
@@ -212,8 +213,9 @@
 
             //接続が切れたら再接続を試行する
             fed_socket.onclose = function (e) {
-                status_post('ストリーミングが切断されました。１分後に再接続を試みます。');
+                //status_post('ストリーミングが切断されました。１分後に再接続を試みます。');
                 setTimeout(function () {
+                    fed_socket.close();
                     start();
                 }, 60000);
             };
@@ -223,6 +225,15 @@
             setInterval("secondCount()", 10000);
             setInterval("minuteCount()", 60000);
             setInterval("hourCount()", 3600000);
+            //1時間ごとに再起動する（Wi-Fi環境よわよわなので）
+            setInterval(function () {
+                socket.close();
+                start();
+            }, 3600000);
+            setInterval(function () {
+                fed_socket.close();
+                start();
+            }, 3600000);
         }
 
     }
@@ -287,11 +298,11 @@
         document.getElementById('minute_times').innerText = time;
         //POST
         document.getElementById('minute_post').onclick = function () {
-            status_post(document.getElementById('minute_toots').innerText + "\n" + document.getElementById('minute_accounts').innerText + document.getElementById('fed_minute_toots').innerText + "\n" + document.getElementById('fed_minute_accounts').innerText + "\n" + document.getElementById('minute_times').innerText);
+            status_post(document.getElementById('minute_toots').innerText + "\n" + document.getElementById('minute_accounts').innerText + '\n' + document.getElementById('fed_minute_toots').innerText + "\n" + document.getElementById('fed_minute_accounts').innerText + "\n" + document.getElementById('minute_times').innerText);
         };
         //定期投稿
         if (getTimePost('minute_switch')) {
-            status_post(document.getElementById('minute_toots').innerText + "\n" + document.getElementById('minute_accounts').innerText + document.getElementById('fed_minute_toots').innerText + "\n" + document.getElementById('fed_minute_accounts').innerText + "\n" + document.getElementById('minute_times').innerText);
+            status_post(document.getElementById('minute_toots').innerText + "\n" + document.getElementById('minute_accounts').innerText + '\n' + document.getElementById('fed_minute_toots').innerText + "\n" + document.getElementById('fed_minute_accounts').innerText + "\n" + document.getElementById('minute_times').innerText);
         }
     }
     //時間
@@ -310,11 +321,11 @@
         document.getElementById('hour_times').innerText = time;
         //POST
         document.getElementById('hour_post').onclick = function () {
-            status_post(document.getElementById('hour_toots').innerText + "\n" + document.getElementById('hour_accounts').innerText + document.getElementById('fed_hour_toots').innerText + "\n" + document.getElementById('fed_hour_accounts').innerText + "\n" + document.getElementById('hour_times').innerText);
+            status_post(document.getElementById('hour_toots').innerText + "\n" + document.getElementById('hour_accounts').innerText + '\n' + document.getElementById('fed_hour_toots').innerText + "\n" + document.getElementById('fed_hour_accounts').innerText + "\n" + document.getElementById('hour_times').innerText);
         };
         //定期投稿
         if (getTimePost('hour_switch')) {
-            status_post(document.getElementById('hour_toots').innerText + "\n" + document.getElementById('hour_accounts').innerText + document.getElementById('fed_hour_toots').innerText + "\n" + document.getElementById('fed_hour_accounts').innerText + "\n" + document.getElementById('hour_times').innerText);
+            status_post(document.getElementById('hour_toots').innerText + "\n" + document.getElementById('hour_accounts').innerText + '\n' + document.getElementById('fed_hour_toots').innerText + "\n" + document.getElementById('fed_hour_accounts').innerText + "\n" + document.getElementById('hour_times').innerText);
         }
     }
 
